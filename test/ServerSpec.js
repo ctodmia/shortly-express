@@ -72,7 +72,7 @@ describe('', function() {
 
     var requestWithSession = request.defaults({jar: true});
 
-var xbeforeEach = function(){};
+    xbeforeEach(function(){
       // create a user that we can then log-in with
       new User({
           'username': 'Phillip',
