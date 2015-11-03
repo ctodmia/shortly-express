@@ -22,11 +22,14 @@ db.knex.schema.hasTable('urls').then(function(exists) {
       link.string('code', 100);
       link.string('title', 255);
       link.integer('visits');
+      link.integer('user_id') // Team AFRIKA : 'added foreign key.'
       link.timestamps();
     }).then(function (table) {
       console.log('Created Table', table);
     });
   }
+        // console.log('This is URLs Table:', table);
+
 });
 
 db.knex.schema.hasTable('clicks').then(function(exists) {
@@ -39,6 +42,8 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
       console.log('Created Table', table);
     });
   }
+        // console.log('This is Clicks Table:', shortlydb);
+
 });
 
 /************************************************************/
@@ -46,4 +51,41 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 /************************************************************/
 
 
+db.knex.schema.hasTable('users').then(function(exists) {
+  if (!exists) {
+    db.knex.schema.createTable('users', function (user) {
+      user.increments('id').primary();
+      user.string('username', 255);
+      user.string('password', 255);
+      // There are many links for each user, so the foreign key should sit on LINKS.  Surprise!: It already does.  
+      user.timestamps();
+    }).then(function (table) {
+      console.log('Created Table', table);
+    });
+  }
+      // console.log('This is shortlydb:');
+
+});
+
+
 module.exports = db;
+
+
+//THIS may be useful:
+
+/*
+HasTablem as above, checks for a table's existence by tableName, resolving with a boolean to signal if the table exists.
+
+knex.schema.hasTable('users').then(function(exists) {
+  if (!exists) {
+    return knex.schema.createTable('users', function(t) {
+      t.increments('id').primary();
+      t.string('first_name', 100);
+      t.string('last_name', 100);
+      t.text('bio');
+    });
+  }
+});
+
+hasColumnknex.schema.hasColumn(tableName, columnName) 
+Checks if a column exists in the current table, resolves the promise with a boolean, true if the column exists, false otherwise.*/

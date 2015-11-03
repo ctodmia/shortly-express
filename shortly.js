@@ -23,14 +23,28 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 
-app.get('/', 
+app.get('/', // TO DO: Attach authentication for conditional access. 
 function(req, res) {
-  res.render('index');
+   // if (util.isLoggedIn()) {
+
+   // Example: if(userIsAuthenticated) {res.render('index')};
+  res.render('index'); // Responds with the index.ejs page.
 });
 
-app.get('/create', 
+app.get('/create', // TO DO: Attach authentication for conditional access.
+function(req, res) { 
+  //  Example: if(userIsAuthenticated) {res.render('index')};
+  res.render('index'); 
+});
+
+app.get('/login', //All Links sub-page
 function(req, res) {
-  res.render('index');
+  res.render('login'); 
+});
+
+app.get('/signup', //All Links sub-page
+function(req, res) {
+  res.render('signup'); 
 });
 
 app.get('/links', 
@@ -40,9 +54,19 @@ function(req, res) {
   });
 });
 
+// app.post('/signup', function (req, res){
+//   var userName = req.body.username;
+//   var userPassword = req.body.password;
+//   console.log('username and password are:', userName, userPassword);
+//     res.send(200);
+// })
+
+
+
 app.post('/links', 
 function(req, res) {
   var uri = req.body.url;
+  console.log('Here I am!!!')
 
   if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);
@@ -74,12 +98,70 @@ function(req, res) {
   });
 });
 
+//NEW and experimental!:
+
+app.post('/signup', 
+function(req, res) {
+  var userName = req.body.username;
+  var userPassword = req.body.password;
+  console.log('Doin it!!!');
+
+  // if (!util.isValidUrl(uri)) {
+  //   console.log('Not a valid url: ', uri);
+  //   return res.send(404);
+  // }
+
+  new User({ username: userName }).fetch().then(function(err/*found*/) {
+    if (err) {throw err
+    } else{
+      
+
+    // if (found) {
+    //   res.send(200, found.attributes);
+    // } else {
+      // util.getUrlTitle(uri, function(err, title) {
+      //   if (err) {
+      //     console.log('Error reading URL heading: ', err);
+      //     return res.send(404);
+      //   }
+
+    var user = new User({
+      username: userName,
+      password: userPassword,
+    });
+
+    user.save().then(function(newUser) {
+      User.add(newUser);
+      res.send(200, newUser);
+    })
+
+    }
+  })
+});
+
 /************************************************************/
 // Write your dedicated authentication routes here
 // e.g. login, logout, etc.
 /************************************************************/
 
 
+
+
+//if( login data authenticated) {
+  //use Bookshelf to Render the linksView}
+//} else {
+  // render signup form
+//   }
+  
+//if( user clicks logout button) {
+  //user is re-directed to ./login page
+//}
+
+
+//save username and pwd in database
+//when the user makes a GET request they should be served, 
+//layout.ejs/login.ejs
+//
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
