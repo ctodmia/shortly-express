@@ -57,6 +57,7 @@ db.knex.schema.hasTable('users').then(function(exists) {
       user.increments('id').primary();
       user.string('username', 255);
       user.string('password', 255);
+      user.string('base_url', 255);
       // There are many links for each user, so the foreign key should sit on LINKS.  Surprise!: It already does.  
       user.timestamps();
     }).then(function (table) {

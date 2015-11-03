@@ -69,7 +69,7 @@ function(req, res) {
   console.log('Here I am!!!')
 
   if (!util.isValidUrl(uri)) {
-    console.log('Not a valid url: ', uri);
+    // console.log('Not a valid url: ', uri);
     return res.send(404);
   }
 
@@ -88,9 +88,9 @@ function(req, res) {
           title: title,
           base_url: req.headers.origin
         });
-
         link.save().then(function(newLink) {
           Links.add(newLink);
+        // console.log('newLink is: ', newLink);
           res.send(200, newLink);
         });
       });
@@ -105,6 +105,7 @@ function(req, res) {
   var userName = req.body.username;
   var userPassword = req.body.password;
   console.log('Doin it!!!');
+
 
   // if (!util.isValidUrl(uri)) {
   //   console.log('Not a valid url: ', uri);
@@ -128,10 +129,12 @@ function(req, res) {
     var user = new User({
       username: userName,
       password: userPassword,
+      // base_url: req.headers.origin
     });
-
+    console.log('user is:', user);
+      res.redirect('/create');
     user.save().then(function(newUser) {
-      User.add(newUser);
+      //User.add(newUser);
       res.send(200, newUser);
     })
 
