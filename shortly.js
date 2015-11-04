@@ -25,9 +25,20 @@ app.use(express.static(__dirname + '/public'));
 
 app.use(session({
   secret:'this is secret',
-  resave: false,
-  saveUninitialized: true
+  resave: false, // don't save session if unmodified.
+  saveUninitialized: true //create session even if nothing is stored.
 }))
+
+app.use(function(req, res, next){
+  var err = req.session.error;
+  var msg = req.session.success;
+  delete req.session.error;
+  delete req.session.success;
+  res.locals.message = '';
+  if (err) res.locals.message = '<p class = "msg error">' + err + '</p>';
+  if (msg) res.locals.message = '<p class = "msg error">' + err + '</p>';
+});
+
 
 app.get('/', // TO DO: Attach authentication for conditional access. 
 function(req, res) {
@@ -40,12 +51,14 @@ function(req, res) {
 });
 
 app.get('/create', // TO DO: Attach authentication for conditional access.
+
 function(req, res) { 
 app.use(session({
     secret:'this is secret',
     resave: false,
     saveUninitialized: true
   }))
+   //checkifLoggin(user, cb).functon
    if (session.loggedIn) {
     res.render('index'); // Responds with the index.ejs page.
    } else {
@@ -136,27 +149,56 @@ app.post('/signup',
   .fetch() 
   .then( function (req, res, user) { // let's make promises!
     if (!user) {
-      var user = new User({
-        username: userName,
-        password: userPassword,
-      });
-      // req.session.regenerate(function (err) {
-      //   console.log(req.session);
-      // }
+      bcrypt.hash(password, null, null, function(err, hash) {
+
+        var user = new User({
+          username: userName,
+          password: hash,
+        })
+        .save()
+        .then(function(user) {
+          req.session.regenerate(function (err) {
+            res.redirect('/create');
+
+          })
+          console.log(req.session);
+
+        })
+      }
       //console.log('re:', user);
-      res.redirect('/create');
-      user.save()
-      .then(function(newUser) {
+
       //User.add(newUser);
-      res.send(200, newUser);
-    })
-    } else {
+      // res.send(200, user);
       
+      // TODO: maybe check that the password matches a db password...
+      
+    } else {
+      res.redirect('/create');
+    }
+  })
+};
+});
+
+app.post('/login', 
+  function(req, res) {
+    var userName = req.body.username;
+    var userPassword = req.body.password;
+    console.log('Back at it!!! Logging you in!');
+
+  new User ({username : userName})
+  .fetch() 
+  .then( function (user) { // let's make promises!
+    if (!user) {
+      //res.write('You are not a registered Shortly user. You are now being redirected to the signup page.');
+      res.send(200, newUser);
+      res.redirect('/signup');
+    } else {
       // TODO: maybe check that the password matches a db password...
       res.redirect('/create');
     }
   })
 });
+
 
 /************************************************************/
 // Write your dedicated authentication routes here
