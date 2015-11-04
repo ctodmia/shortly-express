@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -22,19 +23,35 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(session({
+  secret:'this is secret',
+  resave: false,
+  saveUninitialized: true
+}))
 
 app.get('/', // TO DO: Attach authentication for conditional access. 
 function(req, res) {
-   // if (util.isLoggedIn()) {
-
+   if (session.loggedIn) {
+    res.render('index'); // Responds with the index.ejs page.
+   } else{
+    res.redirect('/login');
+   }
    // Example: if(userIsAuthenticated) {res.render('index')};
-  res.render('index'); // Responds with the index.ejs page.
 });
 
 app.get('/create', // TO DO: Attach authentication for conditional access.
 function(req, res) { 
+app.use(session({
+    secret:'this is secret',
+    resave: false,
+    saveUninitialized: true
+  }))
+   if (session.loggedIn) {
+    res.render('index'); // Responds with the index.ejs page.
+   } else {
+    res.redirect('/login');
+   }
   //  Example: if(userIsAuthenticated) {res.render('index')};
-  res.render('index'); 
 });
 
 app.get('/login', //All Links sub-page
@@ -49,9 +66,19 @@ function(req, res) {
 
 app.get('/links', 
 function(req, res) {
-  Links.reset().fetch().then(function(links) {
-    res.send(200, links.models);
-  });
+  app.use(session({
+    secret:'this is secret',
+    resave: false,
+    saveUninitialized: true
+  }))
+   if (session.loggedIn) {
+    res.render('index'); // Responds with the index.ejs page.
+    Links.reset().fetch().then(function(links) {
+      res.send(200, links.models);
+    });
+   } else{
+    res.redirect('/login');
+   }
 });
 
 // app.post('/signup', function (req, res){
@@ -60,7 +87,6 @@ function(req, res) {
 //   console.log('username and password are:', userName, userPassword);
 //     res.send(200);
 // })
-
 
 
 app.post('/links', 
@@ -101,43 +127,33 @@ function(req, res) {
 //NEW and experimental!:
 
 app.post('/signup', 
-function(req, res) {
-  var userName = req.body.username;
-  var userPassword = req.body.password;
-  console.log('Doin it!!!');
+  function(req, res) {
+    var userName = req.body.username;
+    var userPassword = req.body.password;
+    console.log('Doin it!!!');
 
-
-  // if (!util.isValidUrl(uri)) {
-  //   console.log('Not a valid url: ', uri);
-  //   return res.send(404);
-  // }
-
-  new User({ username: userName }).fetch().then(function(err/*found*/) {
-    if (err) {throw err
-    } else{
-      
-
-    // if (found) {
-    //   res.send(200, found.attributes);
-    // } else {
-      // util.getUrlTitle(uri, function(err, title) {
-      //   if (err) {
-      //     console.log('Error reading URL heading: ', err);
-      //     return res.send(404);
-      //   }
-
-    var user = new User({
-      username: userName,
-      password: userPassword,
-      // base_url: req.headers.origin
-    });
-    console.log('user is:', user);
+  new User( { username: userName } ) //checked the database
+  .fetch() 
+  .then( function (req, res, user) { // let's make promises!
+    if (!user) {
+      var user = new User({
+        username: userName,
+        password: userPassword,
+      });
+      // req.session.regenerate(function (err) {
+      //   console.log(req.session);
+      // }
+      //console.log('re:', user);
       res.redirect('/create');
-    user.save().then(function(newUser) {
+      user.save()
+      .then(function(newUser) {
       //User.add(newUser);
       res.send(200, newUser);
     })
-
+    } else {
+      
+      // TODO: maybe check that the password matches a db password...
+      res.redirect('/create');
     }
   })
 });
